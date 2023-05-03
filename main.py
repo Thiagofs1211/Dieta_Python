@@ -59,14 +59,14 @@ food_vars = LpVariable.dicts("", food_items, 0, cat='Integer')
 #prob += lpSum([costs[i]*food_vars[i] for i in food_items]), "Total Cost of the balanced diet"
 
 # The objective function is added to 'prob' first
-prob += lpSum([(carboidrato[i] * (porcao[i]/100))*food_vars[i] for i in food_items]), "Total Cost of the balanced diet"
+prob += lpSum([(carboidrato[i] * (porcao[i]/100)) * food_vars[i] for i in food_items]), "Total Cost of the balanced diet"
 
 # Energia(Calorias) - Variável
 prob += lpSum([(energia[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) >= 1800.0, "CaloriaMaxima"
 prob += lpSum([(energia[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) <= 1960.0, "CaloriaMinima"
 
 # Carboidrato - Variável
-prob += lpSum([(carboidrato[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) >= 202.5, "ColesterolMinimo"
+prob += lpSum([(carboidrato[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) >= 202.5, "CarboidratoMinimo"
 
 # Lipideos - Variável
 prob += lpSum([(lipideos[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) <= 60.0, "LipideoMaximo"
@@ -128,55 +128,55 @@ for v in prob.variables():
     if v.varValue>0:
         print(v.name, "=", v.varValue)
 
-energiaFinal = lpSum([energia[f] * food_vars[f].value() for f in food_items])
+energiaFinal = lpSum([energia[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("\nCalorias: {}".format(round(value(energiaFinal), 2)))
 
-carboidratoFinal = lpSum([carboidrato[f] * food_vars[f].value() for f in food_items])
+carboidratoFinal = lpSum([carboidrato[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Carboidratos: {}".format(round(value(carboidratoFinal), 2)))
 
-lipideoFinal = lpSum([lipideos[f] * food_vars[f].value() for f in food_items])
+lipideoFinal = lpSum([lipideos[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Lipídeos: {}".format(round(value(lipideoFinal), 2)))
 
-colesterolFinal = lpSum([colesterol[f] * food_vars[f].value() for f in food_items])
+colesterolFinal = lpSum([colesterol[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Colesterol: {}".format(round(value(colesterolFinal), 2)))
 
-sodioFinal = lpSum([sodio[f] * food_vars[f].value() for f in food_items])
+sodioFinal = lpSum([sodio[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Sódio: {}".format(round(value(sodioFinal), 2)))
 
-proteinaFinal = lpSum([proteina[f] * food_vars[f].value() for f in food_items])
+proteinaFinal = lpSum([proteina[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Proteínas: {}".format(round(value(proteinaFinal), 2)))
 
-fibraFinal = lpSum([fibra[f] * food_vars[f].value() for f in food_items])
+fibraFinal = lpSum([fibra[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Fibras: {}".format(round(value(fibraFinal), 2)))
 
-calcioFinal = lpSum([calcio[f] * food_vars[f].value() for f in food_items])
+calcioFinal = lpSum([calcio[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Cálcio: {}".format(round(value(calcioFinal), 2)))
 
-magnesioFinal = lpSum([magnesio[f] * food_vars[f].value() for f in food_items])
+magnesioFinal = lpSum([magnesio[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Magnésio: {}".format(round(value(magnesioFinal), 2)))
 
-fosforoFinal = lpSum([fosforo[f] * food_vars[f].value() for f in food_items])
+fosforoFinal = lpSum([fosforo[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Fósforo: {}".format(round(value(fosforoFinal), 2)))
 
-ferroFinal = lpSum([ferro[f] * food_vars[f].value() for f in food_items])
+ferroFinal = lpSum([ferro[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Ferro: {}".format(round(value(ferroFinal), 2)))
 
-potassioFinal = lpSum([potassio[f] * food_vars[f].value() for f in food_items])
+potassioFinal = lpSum([potassio[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Potássio: {}".format(round(value(potassioFinal), 2)))
 
-zincoFinal = lpSum([zinco[f] * food_vars[f].value() for f in food_items])
+zincoFinal = lpSum([zinco[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Zinco: {}".format(round(value(zincoFinal), 2)))
 
-vitaminaAFinal = lpSum([vitamina_A[f] * food_vars[f].value() for f in food_items])
+vitaminaAFinal = lpSum([vitamina_A[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Vitamina A: {}".format(round(value(vitaminaAFinal), 2)))
 
-vitaminaCFinal = lpSum([vitamina_C[f] * food_vars[f].value() for f in food_items])
+vitaminaCFinal = lpSum([vitamina_C[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Vitamina C: {}".format(round(value(vitaminaCFinal), 2)))
 
-vitaminaB1Final = lpSum([vitamina_B1[f] * food_vars[f].value() for f in food_items])
+vitaminaB1Final = lpSum([vitamina_B1[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Vitamina B1: {}".format(round(value(vitaminaB1Final), 2)))
 
-vitaminaB2Final = lpSum([vitamina_B2[f] * food_vars[f].value() for f in food_items])
+vitaminaB2Final = lpSum([vitamina_B2[f] * (porcao[f]/100) * food_vars[f].value() for f in food_items])
 print("Vitamina B2: {}".format(round(value(vitaminaB2Final), 2)))
 
 print("\nFunção Objetivo: {}".format(round(value(prob.objective), 2)))
