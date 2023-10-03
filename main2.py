@@ -10,7 +10,7 @@ prob = LpProblem("Simple Diet Problem", LpMinimize)
 # Creates a list of the Ingredients
 food_items = list(df['Alimentos'])
 
-ajustar_pesos = False
+ajustar_pesos = True
 
 print("So, the food items to consdier, are \n" + "-" * 100)
 for f in food_items:
@@ -62,6 +62,9 @@ for f in food_items:
 # Continuous para numeros reais e Integer para numeros inteiros
 food_vars = LpVariable.dicts("Selecao", (nomes_refeicoes, food_items), 0, cat='Integer')
 
+# The objective function is added to 'prob' first
+prob += lpSum([((0.7 * (carboidrato[i] * food_vars[ref][i])) + (0.3 * (energia[i] * food_vars[ref][i]))) for ref in nomes_refeicoes for i in food_items])
+
 prob += lpSum([food_vars["Café da Manhã"][f] for f in food_items]) == 3, "Total_Café_da_Manhã"
 prob += lpSum([food_vars["Primeiro Lanche"][f] for f in food_items]) == 1, "Total_Primeiro_Lanche"
 prob += lpSum([food_vars["Almoço"][f] for f in food_items]) == 6, "Total_Almoço_Lanche"
@@ -74,9 +77,6 @@ prob += lpSum(chosen_vars[f] for f in chosen_vars) == 2, "Exactly_2_V_Foods"
 for f in chosen_vars:
     prob += food_vars["Almoço"][f] <= chosen_vars[f], f"Choose_{f}_If_ChosenVar_Is_1"
 
-
-# The objective function is added to 'prob' first
-prob += lpSum([(energia[i]) * food_vars[ref][i] for ref in nomes_refeicoes for i in food_items])
 # prob += lpSum([(costs[i] * (porcao[i]/100)) * food_vars[i] for i in food_items]), "Total Cost of the balanced diet"
 
 # prob += lpSum([(costs[f] * (porcao[f]/100)) * food_vars[f] for f in food_items]) <= 8.657, "Custo maximo"
@@ -85,11 +85,11 @@ prob += lpSum([(energia[i]) * food_vars[ref][i] for ref in nomes_refeicoes for i
 prob += lpSum([(pesos[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) <= 5.0
 
 # Energia(Calorias) - Variável
-prob += lpSum([(energia[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) >= 1400.0, "CaloriaMinima"
+prob += lpSum([(energia[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) >= 1800.0, "CaloriaMinima"
 #prob += lpSum([(energia[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) <= 2200.0, "CaloriaMaxima"
 
 # Carboidrato - Variável
-prob += lpSum([(carboidrato[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) >= 300.0, "CarboidratoMinimo"
+prob += lpSum([(carboidrato[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) >= 202.5, "CarboidratoMinimo"
 
 # Sodio
 prob += lpSum([(sodio[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) <= 2000.0, "SodioMaximo"
@@ -121,7 +121,7 @@ for refeicao in nomes_refeicoes:
     for classificacao_ref in contagem_classificacoes_necessarias[refeicao]:
         if "/" in classificacao_ref:
             classes_possiveis = classificacao_ref.split("/")
-            if classificacao_ref == "F/L":
+            if classificacao_ref == "F/L" or classificacao_ref == "B/S":
                 prob += lpSum([food_vars[refeicao][f] for f in food_items if classificacao[f] in classes_possiveis]) \
                         == contagem_classificacoes_necessarias[refeicao][classificacao_ref], \
                         "{}_{}_Exact".format(refeicao, classificacao_ref)
@@ -188,19 +188,23 @@ print("Zinco: {}".format(value(zincoFinal)))
 print("\nFunção Objetivo: {}".format(value(prob.objective)))
 
 if ajustar_pesos:
-    selected_foods = [food for food in food_items if food_vars[food].varValue > 0]
+    selected_foods = [food for food in food_items if sum(food_vars[ref][food].varValue for ref in nomes_refeicoes) > 0]
 
-    # Update the Excel file with incremented weights for selected foods
-    updated_weights = {}
-    for food in selected_foods:
-        updated_weights[food] = pesos[food] + 1
+    # Foods not selected in the solution
+    not_selected_foods = list(set(food_items) - set(selected_foods))
 
     # Open the Excel file
     df_updated = pd.read_excel("carolina_dados.xlsx", nrows=295)
 
-    # Update the weights in the DataFrame
-    for food in updated_weights:
-        df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'] = updated_weights[food]
+    # Update the weights in the DataFrame for selected foods
+    for food in selected_foods:
+        df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'] += 1
+
+    # Update the weights in the DataFrame for non-selected foods
+    for food in not_selected_foods:
+        # Ensure weight doesn't fall below 0
+        if df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'].iloc[0] > 0:
+            df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'] -= 1
 
     # Save the updated DataFrame back to the Excel file
     df_updated.to_excel("carolina_dados.xlsx", index=False)
