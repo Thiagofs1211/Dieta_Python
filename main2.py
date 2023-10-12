@@ -36,6 +36,8 @@ sodio = dict(zip(food_items, df['Sódio']))
 
 zinco = dict(zip(food_items, df['Zinco']))
 
+lipideos = dict(zip(food_items, df['Lipídeos']))
+
 pesos = dict(zip(food_items, df['Pesos']))
 
 classificacao = dict(zip(food_items, df['Classificacao']))
@@ -90,6 +92,8 @@ prob += lpSum([(energia[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f
 
 # Carboidrato - Variável
 prob += lpSum([(carboidrato[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) >= 202.5, "CarboidratoMinimo"
+
+prob += lpSum([(lipideos[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) <= 60, "LipideisMaximo"
 
 # Sodio
 prob += lpSum([(sodio[f]) * food_vars[ref][f] for ref in nomes_refeicoes for f in food_items]) <= 2000.0, "SodioMaximo"
@@ -161,6 +165,9 @@ print("\nCalorias: {}".format(value(energiaFinal)))
 carboidratoFinal = lpSum([carboidrato[f] * food_vars[ref][f].varValue for ref in nomes_refeicoes for f in food_items])
 print("Carboidratos: {}".format(value(carboidratoFinal)))
 
+lipideosFinal = lpSum([lipideos[f] * food_vars[ref][f].varValue for ref in nomes_refeicoes for f in food_items])
+print("Lipideos: {}".format(value(lipideosFinal)))
+
 sodioFinal = lpSum([sodio[f] * food_vars[ref][f].varValue for ref in nomes_refeicoes for f in food_items])
 print("Sódio: {}".format(value(sodioFinal)))
 
@@ -188,17 +195,18 @@ print("Zinco: {}".format(value(zincoFinal)))
 print("\nFunção Objetivo: {}".format(value(prob.objective)))
 
 if ajustar_pesos:
-    selected_foods = [food for food in food_items if sum(food_vars[ref][food].varValue for ref in nomes_refeicoes) > 0]
+    selected_foods_count = {food: sum(food_vars[ref][food].varValue for ref in nomes_refeicoes) for food in food_items
+                            if sum(food_vars[ref][food].varValue for ref in nomes_refeicoes) > 0}
 
     # Foods not selected in the solution
-    not_selected_foods = list(set(food_items) - set(selected_foods))
+    not_selected_foods = list(set(food_items) - set(selected_foods_count.keys()))
 
     # Open the Excel file
     df_updated = pd.read_excel("carolina_dados.xlsx", nrows=295)
 
-    # Update the weights in the DataFrame for selected foods
-    for food in selected_foods:
-        df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'] += 1
+    # Update the weights in the DataFrame for selected foods based on the count
+    for food, count in selected_foods_count.items():
+        df_updated.loc[df_updated['Alimentos'] == food, 'Pesos'] += count
 
     # Update the weights in the DataFrame for non-selected foods
     for food in not_selected_foods:
